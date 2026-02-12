@@ -4,11 +4,11 @@
 
 ## 📋 概要
 
-このツールは、SigmaなどからエクスポートされたExcelファイル（複数シート）を自動分析し、戦略的パフォーマンス分析レポートをMarkdown形式で生成します。
+このツールは、SigmaなどからエクスポートされたExcelファイル（複数シート）を自動分析し、**ビジュアル化された戦略的パフォーマンス分析レポート**を生成します。
 
 ### 主な機能
 
-- 📁 **Excelファイルアップロード** - 複数シート対応
+- 📁 **Excelファイルアップロード** - 複数シート対応（ドラッグ＆ドロップUI）
 - 🔍 **自動クロスシート分析** - シート間の相関分析
 - 📊 **5つの重点分析セクション**
   1. 会話活性度と購買意欲の相関
@@ -17,7 +17,8 @@
   4. 高エンゲージメントURLの効率性
   5. ユーザー属性別の期待値差
 - 📄 **構造化レポート生成** - [Data Summary] → [Deep Dive Insight] → [Action Item] の3ステップ形式
-- ⬇️ **Markdownダウンロード** - 生成されたレポートをダウンロード
+- 📈 **ビジュアルHTMLレポート** - チャート・グラフ・KPIカード付きインタラクティブレポート（NEW!）
+- ⬇️ **複数フォーマット対応** - HTML・Markdownでダウンロード可能
 
 ## 🚀 デプロイ方法
 
@@ -75,9 +76,20 @@ python main.py
    - 「分析を開始」ボタンをクリック
    - 自動的に分析が実行されます
 
-4. **レポートのダウンロード**
-   - 分析完了後、プレビューを確認
-   - 「📥 レポートをダウンロード」ボタンでMarkdownファイルを取得
+4. **レポートの表示・ダウンロード**
+   - 分析完了後、以下のオプションが利用可能：
+     - 📊 **「ビジュアルレポートを見る」** - ブラウザでインタラクティブなチャート付きレポートを表示
+     - 📥 **「HTMLをダウンロード」** - ビジュアルHTMLファイルとして保存
+     - 📥 **「Markdownをダウンロード」** - テキストベースのレポートとして保存
+
+### ビジュアルレポートの特徴
+- **KPIカード**: 重要指標を一目で把握（総会話数、コンバージョン率、GMV等）
+- **折れ線グラフ**: 日別会話数とカート追加率の相関を可視化
+- **ドーナツチャート**: デバイス分布、ブラウザ分布、地域分布
+- **棒グラフ**: エンゲージメントURLランキング、トップ都市、FAQ使用状況
+- **インタラクティブ**: Chart.jsによる動的グラフ（ホバーで詳細表示）
+- **落ち着いた配色**: グレー・ブルー・グリーンを基調
+- **レスポンシブ**: PC・タブレット・スマホ対応
 
 ## 🔧 API エンドポイント
 
@@ -116,7 +128,13 @@ Excelファイルをアップロード
 ### `GET /api/report/{report_id}`
 生成されたレポートの内容を取得（JSON）
 
-### `GET /api/download/{report_id}`
+### `GET /api/report/{report_id}/visual`
+生成されたビジュアルHTMLレポートをブラウザで表示（NEW!）
+
+### `GET /api/download/{report_id}/html`
+生成されたレポートをHTMLファイルとしてダウンロード（NEW!）
+
+### `GET /api/download/{report_id}/md`
 生成されたレポートをMarkdownファイルとしてダウンロード
 
 ### `DELETE /api/cleanup/{file_id}`
@@ -127,15 +145,16 @@ Excelファイルをアップロード
 ```
 webapp/
 ├── backend/
-│   ├── main.py                 # FastAPI アプリケーション
-│   ├── analysis_engine.py      # 分析エンジン
-│   ├── report_generator.py     # レポート生成
-│   └── requirements.txt        # Python依存関係
+│   ├── main.py                      # FastAPI アプリケーション
+│   ├── analysis_engine.py           # 分析エンジン
+│   ├── report_generator.py          # Markdownレポート生成
+│   ├── visual_report_generator.py   # ビジュアルHTMLレポート生成（NEW!）
+│   └── requirements.txt             # Python依存関係
 ├── frontend/
-│   └── index.html              # Webインターフェース
-├── Dockerfile                  # Docker設定
-├── fly.toml                    # Fly.io設定
-└── README.md                   # このファイル
+│   └── index.html                   # Webインターフェース（ビジュアル対応）
+├── Dockerfile                       # Docker設定
+├── fly.toml                         # Fly.io設定
+└── README.md                        # このファイル
 ```
 
 ## 🧪 分析エンジンの仕組み
@@ -166,6 +185,7 @@ webapp/
 
 - **バックエンド**: Python 3.11, FastAPI, Pandas, OpenPyXL
 - **フロントエンド**: HTML5, CSS3, Vanilla JavaScript
+- **ビジュアライゼーション**: Chart.js (インタラクティブグラフ)
 - **デプロイ**: Fly.io, Docker
 - **データ処理**: Pandas (クロスシート分析、統計処理)
 
@@ -208,5 +228,5 @@ Issue や Pull Request を歓迎します！
 
 ---
 
-**Version**: 1.0.0  
+**Version**: 2.0.0 (ビジュアルレポート対応)  
 **Last Updated**: 2026-02-12
