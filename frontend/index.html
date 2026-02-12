@@ -303,7 +303,11 @@
             <div class="report-preview" id="reportPreview"></div>
             
             <div class="action-buttons">
-                <button class="btn" id="downloadBtn">📥 レポートをダウンロード</button>
+                <button class="btn" id="viewVisualBtn">📊 ビジュアルレポートを表示</button>
+                <button class="btn" id="downloadHtmlBtn">📥 HTMLレポートをダウンロード</button>
+            </div>
+            <div class="action-buttons" style="margin-top: 10px;">
+                <button class="btn btn-secondary" id="downloadBtn">📄 Markdownをダウンロード</button>
                 <button class="btn btn-secondary" id="newAnalysisBtn">🔄 新しい分析</button>
             </div>
         </div>
@@ -328,6 +332,8 @@
         const progressText = document.getElementById('progressText');
         const result = document.getElementById('result');
         const reportPreview = document.getElementById('reportPreview');
+        const viewVisualBtn = document.getElementById('viewVisualBtn');
+        const downloadHtmlBtn = document.getElementById('downloadHtmlBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const newAnalysisBtn = document.getElementById('newAnalysisBtn');
         const errorDiv = document.getElementById('error');
@@ -448,6 +454,18 @@
                 showError(error.message);
                 progress.classList.remove('show');
                 analyzeBtn.disabled = false;
+            }
+        });
+
+        viewVisualBtn.addEventListener('click', () => {
+            if (currentFileId) {
+                window.open(`${API_URL}/api/report/${currentFileId}/visual`, '_blank');
+            }
+        });
+
+        downloadHtmlBtn.addEventListener('click', () => {
+            if (currentFileId) {
+                window.location.href = `${API_URL}/api/download/${currentFileId}/html`;
             }
         });
 

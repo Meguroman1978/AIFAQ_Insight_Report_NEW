@@ -13,6 +13,7 @@ from typing import Dict, Any
 
 from analysis_engine import AnalysisEngine
 from report_generator import ReportGenerator
+from visual_report_generator import VisualReportGenerator
 
 app = FastAPI(
     title="AIFAQ Insight Report Generator",
@@ -116,14 +117,23 @@ async def analyze_file(file_id: str):
         # 全分析を実行
         analysis_results = engine.run_full_analysis()
         
-        # レポート生成
+        # Markdownレポート生成
         report_gen = ReportGenerator(analysis_results)
         markdown_report = report_gen.generate_markdown()
         
-        # レポートを保存
+        # Markdownレポートを保存
         report_path = REPORT_DIR / f"{file_id}_report.md"
         async with aiofiles.open(report_path, 'w', encoding='utf-8') as f:
             await f.write(markdown_report)
+        
+        # ビジュアルHTMLレポート生成
+        visual_report_gen = VisualReportGenerator(analysis_results)
+        html_report = visual_report_gen.generate_html()
+        
+        # HTMLレポートを保存
+        html_report_path = REPORT_DIR / f"{file_id}_report.html"
+        async with aiofiles.open(html_report_path, 'w', encoding='utf-8') as f:
+            await f.write(html_report)
         
         return {
             "file_id": file_id,
@@ -131,7 +141,9 @@ async def analyze_file(file_id: str):
             "status": "completed",
             "analysis_results": analysis_results,
             "report_url": f"/api/report/{file_id}",
-            "download_url": f"/api/download/{file_id}"
+            "visual_report_url": f"/api/report/{file_id}/visual",
+            "download_url": f"/api/download/{file_id}",
+            "download_html_url": f"/api/download/{file_id}/html"
         }
         
     except Exception as e:
@@ -161,6 +173,25 @@ async def get_report(report_id: str):
         raise HTTPException(status_code=500, detail=f"レポート取得エラー: {str(e)}")
 
 
+@app.get("/api/report/{report_id}/visual", response_class=HTMLResponse)
+async def get_visual_report(report_id: str):
+    """
+    生成されたビジュアルHTMLレポートを表示
+    """
+    html_report_path = REPORT_DIR / f"{report_id}_report.html"
+    
+    if not html_report_path.exists():
+        raise HTTPException(status_code=404, detail="ビジュアルレポートが見つかりません")
+    
+    try:
+        async with aiofiles.open(html_report_path, 'r', encoding='utf-8') as f:
+            content = await f.read()
+        
+        return HTMLResponse(content=content)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"ビジュアルレポート取得エラー: {str(e)}")
+
+
 @app.get("/api/download/{report_id}")
 async def download_report(report_id: str):
     """
@@ -178,6 +209,23 @@ async def download_report(report_id: str):
     )
 
 
+@app.get("/api/download/{report_id}/html")
+async def download_html_report(report_id: str):
+    """
+    生成されたビジュアルHTMLレポートをダウンロード
+    """
+    html_report_path = REPORT_DIR / f"{report_id}_report.html"
+    
+    if not html_report_path.exists():
+        raise HTTPException(status_code=404, detail="HTMLレポートが見つかりません")
+    
+    return FileResponse(
+        path=html_report_path,
+        filename=f"visual_analysis_report_{report_id}.html",
+        media_type="text/html"
+    )
+
+
 @app.delete("/api/cleanup/{file_id}")
 async def cleanup_files(file_id: str):
     """
@@ -190,11 +238,17 @@ async def cleanup_files(file_id: str):
         file.unlink()
         deleted.append(str(file))
     
-    # レポートファイルを削除
+    # Markdownレポートファイルを削除
     report_path = REPORT_DIR / f"{file_id}_report.md"
     if report_path.exists():
         report_path.unlink()
         deleted.append(str(report_path))
+    
+    # HTMLレポートファイルを削除
+    html_report_path = REPORT_DIR / f"{file_id}_report.html"
+    if html_report_path.exists():
+        html_report_path.unlink()
+        deleted.append(str(html_report_path))
     
     return {
         "file_id": file_id,
